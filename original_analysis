@@ -1,0 +1,275 @@
+7/03/18 - TdTom pos only - more stringent thresholds
+
+> d77=read.table("OPC_d77_dge.txt.gz", header = T, row.names=1)
+> d89=read.table("OPC_d89_dge.txt.gz", header = T, row.names=1)
+> d104=read.table("OPC_d104_dge.txt.gz", header = T, row.names=1)
+> d77=CreateSeuratObject(d77, min.cells=1, min.genes=1)
+> d89=CreateSeuratObject(d89, min.cells=1, min.genes=1)
+> d104=CreateSeuratObject(d104, min.cells=1, min.genes=1)
+> OPCs_tdTom=MergeSeurat(d77, d89, min.cells=1, min.genes=1, do.normalize=F, add.cell.id1="d77", add.cell.id2="d89")
+> OPCs_tdTom=MergeSeurat(OPCs_tdTom, d104, min.cells=3, min.genes=250, do.normalize=T, add.cell.id2="d104")
+Performing log-normalization
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+> OPCs_tdTom
+An object of class seurat in project SeuratProject 
+ 19818 genes across 3392 samples.
+> OPCs_tdTom=StashIdent(OPCs_tdTom, save.name="age")
+> VlnPlot(OPCs_tdTom, c("nUMI", "nGene"))
+> mito.genes=grep("^MT-", rownames(OPCs_tdTom@data), value=T)
+> percent.mito=Matrix::colSums(OPCs_tdTom@raw.data[mito.genes,])/Matrix::colSums(OPCs_tdTom@raw.data)
+> OPCs_tdTom=AddMetaData(OPCs_tdTom, metadata=percent.mito, col.name="percent.mito")
+> GenePlot(OPCs_tdTom, "percent.mito", "nUMI")
+> OPCs_tdTom=FilterCells(OPCs_tdTom, subset.names=c("nUMI", "percent.mito"), low.thresholds=c(350, -Inf), high.thresholds=c(30000, 0.2))
+> OPCs_tdTom
+An object of class seurat in project SeuratProject 
+ 19818 genes across 3271 samples.
+> OPCs_tdTom=FindVariableGenes(OPCs_tdTom, mean.function=ExpMean, dispersion.function=LogVMR, x.low.cutoff=0.0125, x.high.cutoff=3, y.cutoff=0.5)
+Calculating gene means
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating gene variance to mean ratios
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+> length(OPCs_tdTom@var.genes)
+[1] 3990
+> length(grep("^MT-", OPCs_tdTom@var.genes, value=T))
+[1] 6
+> OPCs_tdTom=FindVariableGenes(OPCs_tdTom, mean.function=ExpMean, dispersion.function=LogVMR, x.low.cutoff=0.025, x.high.cutoff=3, y.cutoff=0.5)
+Calculating gene means
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating gene variance to mean ratios
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+> length(OPCs_tdTom@var.genes)
+[1] 3369
+> OPCs_tdTom=FindVariableGenes(OPCs_tdTom, mean.function=ExpMean, dispersion.function=LogVMR, x.low.cutoff=0.025, x.high.cutoff=3, y.cutoff=1)
+Calculating gene means
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating gene variance to mean ratios
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+> length(OPCs_tdTom@var.genes)
+[1] 1023
+> OPCs_tdTom=FindVariableGenes(OPCs_tdTom, mean.function=ExpMean, dispersion.function=LogVMR, x.low.cutoff=0.025, x.high.cutoff=3, y.cutoff=0.75)
+Calculating gene means
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+Calculating gene variance to mean ratios
+0%   10   20   30   40   50   60   70   80   90   100%
+[----|----|----|----|----|----|----|----|----|----|
+**************************************************|
+> length(OPCs_tdTom@var.genes)
+[1] 1874
+		## use this if includes main marker OL and astro genes (don't want to include too many genes for now)
+> grep("MBP", OPCs_tdTom@var.genes, value=T)
+[1] "DNMBP" "MBP"  
+> grep("PLP", OPCs_tdTom@var.genes, value=T)
+[1] "APLP1" "PLP1"  "PLPP3" "PLPP4" "PLPP5" "PLPP6"
+> grep("GFAP", OPCs_tdTom@var.genes, value=T)
+[1] "GFAP"
+> OPCs_tdTom=RunPCA(OPCs_tdTom, pc.genes=OPCs_tdTom@var.genes, pcs.print=1:5, genes.print=5)
+Error in GetAssayData(object, assay.type = assay.type, slot = "scale.data") : 
+  Object@scale.data has not been set. Run ScaleData() and then retry.
+> OPCs_tdTom=ScaleData(OPCs_tdTom)
+[1] "Scaling data matrix"
+  |======================================================================| 100%
+> OPCs_tdTom=RunPCA(OPCs_tdTom, pc.genes=OPCs_tdTom@var.genes, pcs.print=1:5, genes.print=5)
+[1] "PC1"
+[1] "IGFBP7" "SULF1"  "ANXA2"  "VIM"    "SPARC" 
+[1] ""
+[1] "BCAN"     "SIRT2"    "MIR219A2" "CADM2"    "BCAS1"   
+[1] ""
+[1] ""
+[1] "PC2"
+[1] "PLP1"     "MBP"      "BCAS1"    "CNP"      "MIR219A2"
+[1] ""
+[1] "CENPF"  "TOP2A"  "MKI67"  "NUSAP1" "ASPM"  
+[1] ""
+[1] ""
+[1] "PC3"
+[1] "ID2"  "DIO3" "GFAP" "AGT"  "DLL3"
+[1] ""
+[1] "TOP2A"  "UBE2C"  "NUSAP1" "CENPF"  "ASPM"  
+[1] ""
+[1] ""
+[1] "PC4"
+[1] "COL1A1" "COL3A1" "COL1A2" "DCN"    "TAGLN" 
+[1] ""
+[1] "GFAP"    "CLU"     "AQP4"    "AGT"     "SPARCL1"
+[1] ""
+[1] ""
+[1] "PC5"
+[1] "TFF3"    "COL21A1" "CFC1"    "EFNB3"   "SPAG6"  
+[1] ""
+[1] "COL4A1" "COL1A2" "EDNRB"  "F3"     "COL4A2"
+[1] ""
+[1] ""
+> OPCs_tdTom=ProjectPCA(OPCs_tdTom)
+[1] "PC1"
+ [1] "IGFBP7"   "SULF1"    "ANXA2"    "VIM"      "SPARC"    "S100A10" 
+ [7] "CTGF"     "LGALS1"   "COL3A1"   "CD99"     "DHRS3"    "TAGLN"   
+[13] "ELN"      "S100A11"  "CYR61"    "ANXA1"    "COL1A1"   "IFITM3"  
+[19] "SPARCL1"  "CLU"      "ID3"      "MFAP4"    "PTRF"     "FSTL1"   
+[25] "COL1A2"   "COL5A2"   "AGT"      "SERPINH1" "GFAP"     "EZR"     
+[1] ""
+ [1] "MARCKSL1" "BCAN"     "C1orf61"  "SIRT2"    "MAP2"     "MIR219A2"
+ [7] "CADM2"    "SCRG1"    "BCAS1"    "UGT8"     "PTN"      "GPM6A"   
+[13] "PTMA"     "RAB33A"   "GRIA2"    "OLIG1"    "LSAMP"    "ATCAY"   
+[19] "SMOC1"    "DCX"      "WASF1"    "SOX10"    "SLC44A1"  "TSC22D1" 
+[25] "PLPPR1"   "MBP"      "DBI"      "HMP19"    "TMEM206"  "PLP1"    
+[1] ""
+[1] ""
+[1] "PC2"
+ [1] "PLP1"         "MBP"          "BCAS1"        "CNP"          "MIR219A2"    
+ [6] "RP11-89N17.4" "UGT8"         "CLDN11"       "PTGDS"        "SIRT2"       
+[11] "CDK18"        "KCTD12"       "SLC44A1"      "MOG"          "NFASC"       
+[16] "CHN2"         "KIF21A"       "ARHGAP5"      "SEMA4D"       "FAM13C"      
+[21] "ARHGAP5-AS1"  "PRDX1"        "ENPP6"        "WASF1"        "SMOC1"       
+[26] "APLP1"        "SGCD"         "TNR"          "RAB33A"       "RND2"        
+[1] ""
+ [1] "CENPF"  "TOP2A"  "MKI67"  "NUSAP1" "ASPM"   "UBE2C"  "HMGB2"  "PTTG1" 
+ [9] "NUF2"   "TPX2"   "PRC1"   "SMC4"   "BIRC5"  "CDK1"   "CENPE"  "MAD2L1"
+[17] "CCNB1"  "KIF14"  "CKS2"   "FAM64A" "FABP7"  "TUBA1B" "SGO2"   "ANP32E"
+[25] "HMGN2"  "NDC80"  "TYMS"   "KNL1"   "KIF4A"  "DLGAP5"
+[1] ""
+[1] ""
+[1] "PC3"
+ [1] "C1orf61"  "RPL13"    "ID2"      "RPS4X"    "MT-RNR2"  "DIO3"    
+ [7] "RPL34"    "GFAP"     "RPL7"     "AGT"      "DLL3"     "RPS19"   
+[13] "MIAT"     "ATP1A2"   "ID3"      "MIR100HG" "CLU"      "GAS5"    
+[19] "RPS14"    "RPS3A"    "AQP4"     "MT-CO1"   "HIST3H2A" "CDKN1A"  
+[25] "RPL13A"   "CRYAB"    "CA2"      "FABP7"    "STMN4"    "DIO3OS"  
+[1] ""
+ [1] "TOP2A"  "UBE2C"  "NUSAP1" "CENPF"  "ASPM"   "MKI67"  "TPX2"   "HMGB2" 
+ [9] "PTTG1"  "NUF2"   "BIRC5"  "PRC1"   "CDK1"   "CENPE"  "CCNB1"  "SMC4"  
+[17] "KIF14"  "SGO2"   "CKS2"   "DLGAP5" "NDC80"  "FAM64A" "KNL1"   "GTSE1" 
+[25] "MAD2L1" "KPNA2"  "TUBA1B" "NEK2"   "CKAP2L" "CKS1B" 
+[1] ""
+[1] ""
+[1] "PC4"
+ [1] "COL1A1"   "COL3A1"   "COL1A2"   "DCN"      "TAGLN"    "OGN"     
+ [7] "LUM"      "FBLN1"    "ASPN"     "CRABP2"   "BGN"      "MYL9"    
+[13] "PCOLCE"   "ACTG2"    "S100A11"  "COL6A3"   "ACTA2"    "SERPINH1"
+[19] "FN1"      "POSTN"    "TPM2"     "ITIH5"    "PTRF"     "MFAP4"   
+[25] "COL8A1"   "TGFBI"    "LGALS1"   "ELN"      "MYLK"     "SPON2"   
+[1] ""
+ [1] "GFAP"    "CLU"     "AQP4"    "AGT"     "SPARCL1" "HSPB8"   "MGST1"  
+ [8] "EZR"     "EDNRB"   "ID3"     "DCLK1"   "PSRC1"   "ANOS1"   "TGFB2"  
+[15] "F3"      "ATP1B2"  "NMB"     "AHCYL1"  "DTNA"    "CA2"     "CD99"   
+[22] "S100A10" "FABP5"   "PEA15"   "ID4"     "RGMA"    "CRYAB"   "MAP7"   
+[29] "SPON1"   "EFEMP1" 
+[1] ""
+[1] ""
+[1] "PC5"
+ [1] "TFF3"     "COL21A1"  "CFC1"     "EFNB3"    "SPAG6"    "HP"      
+ [7] "SLIT2"    "NDNF"     "NNMT"     "TSPAN2"   "F5"       "SULF1"   
+[13] "GALNT3"   "TCTEX1D1" "LEFTY2"   "CTGF"     "TTC6"     "SULT1C4" 
+[19] "TPPP3"    "HPX"      "TSTD1"    "MS4A8"    "CFAP45"   "HOXB-AS3"
+[25] "C5orf49"  "ANXA2"    "RSPH1"    "FOXP1"    "CAPS"     "PALMD"   
+[1] ""
+ [1] "COL4A1"   "COL1A2"   "EDNRB"    "C1orf61"  "F3"       "COL4A2"  
+ [7] "COL1A1"   "PMP2"     "AQP4"     "ANOS1"    "B2M"      "HOPX"    
+[13] "ID2"      "GFAP"     "ATP1B2"   "CA2"      "CNN3"     "PEA15"   
+[19] "OGN"      "HLA-B"    "DCLK1"    "ASPN"     "TNC"      "SPARC"   
+[25] "ID1"      "AHCYL1"   "SERPINH1" "LGALS1"   "DTNA"     "CRABP2"  
+[1] ""
+[1] ""
+> PCHeatmap(OPCs_tdTom, pc.use=1:12, cells.use=500, do.balanced=T)
+> PCHeatmap(OPCs_tdTom, pc.use=1:6, cells.use=500, do.balanced=T) 
+> PCHeatmap(OPCs_tdTom, pc.use=7:12, cells.use=500, do.balanced=T)
+> save(list=ls(all=T), file="070318.RData")
+> JackStrawPlot(OPCs_tdTom, PCs=1:20)
+Warning message:
+Removed 28777 rows containing missing values (geom_point). 
+	## PCs 1:16 statistically significant
+> OPCs_tdTom=FindClusters(OPCs_tdTom, dims.use=1:16, resolution=1.2, reduction.type="pca", print.output=0, save.SNN=T)
+> OPCs_tdTom=RunTSNE(OPCs_tdTom, dims.use=1:16)
+> jpeg("rplot_tdTom_OPCs_tsne.jpg")
+> TSNEPlot(OPCs_tdTom, do.label=T)
+> dev.off()
+X11cairo 
+       2 
+> jpeg("rplot_tdTom_OPCs_fp.jpg")
+> FeaturePlot(OPCs_tdTom, c("MBP", "PLP1", "OLIG1", "OLIG2", "PDGFRA", "GFAP", "SOX10", "TCF7L2", "MOG"), cols.use=c("grey", "red"> dev.off()
+X11cairo 
+       2 
+> OPCs_tdTom_clustermarkers=FindAllMarkers(OPCs_tdTom, min.pct=0.25, thresh.use=0.25)
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 05s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 08s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 19s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 05s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 14s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 17s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 08s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 04s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 33s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 25s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 44s
+   |++++++++++++++++++++++++++++++++++++++++++++++++++| 100% elapsed = 15s
+
+7/6/18
+> for (i in 0:11) {print(length(WhichCells(OPCs_tdTom, ident=i)))}
+[1] 585
+[1] 565
+[1] 397
+[1] 280
+[1] 251
+[1] 249
+[1] 217
+[1] 193
+[1] 188
+[1] 142
+[1] 109
+[1] 95
+> OPCs_tdTom
+An object of class seurat in project SeuratProject 
+ 19818 genes across 3271 samples.
+> grep("GFAP", rownames(OPCs_tdTom@data))
+[1] 5596
+> grep("MBP", rownames(OPCs_tdTom@data))
+[1]  4129  4581  6651  8082  8111 11445 15638 15639
+> grep("MBP", rownames(OPCs_tdTom@data), value=T)
+[1] "DNMBP"    "EMBP1"    "IGHMBP2"  "MBP"      "MCMBP"    "RIMBP2"   "STAMBP"  
+[8] "STAMBPL1"
+> grep("^MBP", rownames(OPCs_tdTom@data))
+[1] 8082
+> GFAP_counts=OPCs_tdTom@raw.data[5596,]
+> MBP_counts=OPCs_tdTom@raw.data[8082,]
+> GFAP_counts[GFAP_counts==0]=NA
+> MBP_counts[MBP_counts==0]=NA
+> MBP_counts=na.omit(MBP_counts)
+> GFAP_counts=na.omit(GFAP_counts)
+> length(MBP_counts)
+[1] 733
+> length(GFAP_counts)
+[1] 901
+> cluster0=WhichCells(OPCs_tdTom, ident=0)
+> cluster1=WhichCells(OPCs_tdTom, ident=1)
+> cluster2=WhichCells(OPCs_tdTom, ident=2)
+> cluster3=WhichCells(OPCs_tdTom, ident=3)
+> cluster4=WhichCells(OPCs_tdTom, ident=4)
+> cluster5=WhichCells(OPCs_tdTom, ident=5)
+> cluster6=WhichCells(OPCs_tdTom, ident=6)
+> cluster7=WhichCells(OPCs_tdTom, ident=7)
+> cluster8=WhichCells(OPCs_tdTom, ident=8)
+> cluster9=WhichCells(OPCs_tdTom, ident=9)
+> cluster10=WhichCells(OPCs_tdTom, ident=10)
+> cluster11=WhichCells(OPCs_tdTom, ident=11)
+> length(grep("d77", OPCs_tdTom@cell.names))
+[1] 691
+> length(grep("d89", OPCs_tdTom@cell.names))
+[1] 1803
+> length(grep("d104", OPCs_tdTom@cell.names))
+[1] 777
+
