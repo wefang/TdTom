@@ -9,9 +9,9 @@
 	1. **reanalyze_tdTom.R** standard Seurat 3.1.5 pipeline is used. Because the Louvain clustering produced similar results as the previous TSNE clustering, TSNE clusters are displayed on the UMAP plot. Marker gene lists are used for preranked GSEA and 
 
 * Processing for data integration 
-	1. **jakel.R** [data source](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE118257)
-	2. **schimer19.R** [data source](https://cells.ucsc.edu/?ds=ms)
-	3. **zhong.R** [data source](https://db.cngb.org/HCL/gallery.html?tissue=Fetal-Brain_Zhong)
+	1. **process_jakel.R** [data source](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE118257)
+	2. **process_schimer19.R** [data source](https://cells.ucsc.edu/?ds=ms)
+	3. **process_zhong.R** [data source](https://db.cngb.org/HCL/gallery.html?tissue=Fetal-Brain_Zhong)
 
 * Integration and label transfer
 	1. **integrate_multiple.R** integration of the three datasets above with data in the paper. (Fig 4)
