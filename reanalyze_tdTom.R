@@ -18,7 +18,7 @@ make_rnk <- function(y, path) {
 }
 
 
-# rda file produced by old analysis
+# rda file produced by seurat 2.0 old analysis
 load('./OPCs_042820.RData')
 OPCs_tdTom1 = OPCs_tdTom
 OPCs_tdTom1 <- NormalizeData(OPCs_tdTom1, verbose = FALSE)
@@ -30,7 +30,6 @@ OPCs_tdTom1 = RunPCA(OPCs_tdTom1, verbose = TRUE, npcs = 100)
 ElbowPlot(OPCs_tdTom1, ndims = 50)
 OPCs_tdTom1 = FindNeighbors(OPCs_tdTom1, dims = 1:20)
 OPCs_tdTom1 = FindClusters(OPCs_tdTom1)
-# wirte_tsv(as.matrix(OPCs_tdTom1@assays$RNA@counts), )
 OPCs_tdTom1 <- RunUMAP(OPCs_tdTom1, dims = 1:20)
 
 cluster10_sub = read_csv("c10_subclustered_ids.csv")
