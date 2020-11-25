@@ -4,6 +4,7 @@ library(ComplexHeatmap)
 library(RColorBrewer)
 library(matrixStats)
 
+# invidual files produced by separate processing files
 zhong = readRDS("processed/zhong.rds")
 schirmer19 = readRDS("processed/schirmer19.rds")
 jakel = readRDS("processed/jakel.rds")

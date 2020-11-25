@@ -13,8 +13,22 @@ hESC_tenx = RunPCA(hESC_tenx)
 hESC_tenx = RunUMAP(hESC_tenx, dims = 1:10)
 hESC_tenx = FindNeighbors(hESC_tenx)
 hESC_tenx = FindClusters(hESC_tenx)
+
+cl_order = c(12, 9, 13, 2, 11, 4, 1, 0, 3, 5, 10, 7, 14, 6, 8)
+cl_labels = c("Peri1", "Peri2", "Peri3", "CyP1", "CyP2", "OPC1", "OPC2", "OPC3", "OPC4", "OL1", "OL2", "AS1", "AS2", "AS3", "AS4")
+cl_labels = paste0("D85-", cl_labels)
+cl_col = c(brewer.pal(6, "Greens")[4:6],
+           brewer.pal(4, "Purples")[3:4],
+           brewer.pal(6, "RdPu")[2:5],
+           brewer.pal(4, "Blues")[3:4],
+           brewer.pal(6, "Oranges")[3:6])
+names(cl_col) = cl_labels
+Idents(hESC_tenx) <- factor(x = hESC_tenx$seurat_clusters, levels = cl_order, labels = cl_labels)
+
+# Fig s7A
 g_x = UMAPPlot(hESC_tenx, label = T, label.size = 10, pt.size = 3.0, repel = T) + NoLegend() + scale_color_manual(values = cl_col)
 g_x
+ggsave("plot_extra/hESC_10x/UMAP_cluster_new_label.pdf")
 
 g1s_genes = readLines("g1s_genes.txt")
 g2m_genes = readLines("g2m_genes.txt")
@@ -47,7 +61,7 @@ g_y = UMAPPlot(hESC_tenx, group.by = "predicted.id", pt.size = 1.0) +
         scale_color_manual(values = cl_ident$color) +
         theme(legend.text = element_text(size = 20))
 g_x + g_y
-# ggsave("plot_extra/UMAP_predicted_cluster.pdf")
+ggsave("plot_extra/hESC_10x/UMAP_predicted_cluster_newlabel.pdf")
 
 # coembedding
 integrated = RenameAssays(integrated, RNA = 'rna')
@@ -86,13 +100,15 @@ g1 = UMAPPlot(coembed, group.by = "source", pt.size = 3.0) +
 g2 = UMAPPlot(coembed, group.by = "celltype", pt.size = 3.0) +
         scale_color_manual(values = cl_ident$color) + theme(legend.position = "top") + theme(legend.position = "top", legend.text = element_text(size = 25)) + theme(plot.margin = margin(r = 4, unit = "cm"))
 g1 + g2
+ggsave("plot_extra/hESC_10x/integrated_umap.pdf")
 
+library(ComplexHeatmap)
 p_mat = as.matrix(predictions0[, 2:(ncol(predictions0) - 1)])
 p_mat = p_mat[, colMaxs(p_mat) > 0.5]
 p_mat_norm = p_mat / rowSums(p_mat)
 Heatmap(p_mat_norm, show_row_names = F, name = "Probability",
         left_annotation = rowAnnotation(Line = OPCs_tdTom1$res.1.2),
-        row_order = order( OPCs_tdTom1$res.1.2))
+        row_order = order(OPCs_tdTom1$res.1.2))
 
 cluster_ident = do.call(rbind, lapply(split(data.frame(p_mat), hESC_tenx$seurat_clusters), colMeans))
 colnames(cluster_ident) = stringr::str_match(colnames(cluster_ident), "prediction\\.score\\.(.*)")[, 2]
@@ -109,15 +125,6 @@ Heatmap(
                 show_legend  = F
         )
 )
-cl_order = c(12, 9, 13, 2, 11, 4, 1, 0, 3, 5, 10, 7, 14, 6, 8)
-cl_labels = c("Peri1", "Peri2", "Peri3", "CyP1", "CyP2", "OPC1", "OPC2", "OPC3", "OPC4", "OL1", "OL2", "AS1", "AS2", "AS3", "AS4")
-cl_col = c(brewer.pal(6, "Greens")[4:6],
-           brewer.pal(4, "Purples")[3:4],
-           brewer.pal(6, "RdPu")[2:5],
-           brewer.pal(4, "Blues")[3:4],
-           brewer.pal(6, "Oranges")[3:6])
-names(cl_col) = cl_labels
-Idents(hESC_tenx) <- factor(x = hESC_tenx$seurat_clusters, levels = cl_order, labels = cl_labels)
 
 markers = FindAllMarkers(hESC_tenx)
 readr::write_csv(markers, "plot_extra/hESC_10x/markers_all.csv")
@@ -149,6 +156,6 @@ top_genes = top_genes[top_genes$p_val_adj < 0.05, ]
 
 DoHeatmap(hESC_tenx, features = top_genes$gene, size = 7, angle = 60, group.colors = cl_col) + NoLegend()+ theme(plot.margin = margin(2, 1, 1, 1, "cm"))
 # ggsave("plot_extra/hESC_10x/markers_OPC.pdf")
-ggsave("plot_extra/hESC_10x/markers_all.pdf")
+ggsave("plot_extra/hESC_10x/markers_all_newlabel.pdf")
 
 

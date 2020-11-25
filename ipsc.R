@@ -14,11 +14,12 @@ ipsc = RunUMAP(ipsc, dims = 1:10)
 ipsc = FindNeighbors(ipsc)
 ipsc = FindClusters(ipsc)
 cl_order = c(2, 6, 0 ,3 ,1, 4, 5)
-cl_labels = c("CyP1", "CyP2", "OPC1", "OPC2", "OPC3", "OPC4", "OPC5")
+cl_labels = c("iP-CyP1", "iP-CyP2", "iP-OPC1", "iP-OPC2", "iP-OPC3", "iP-OPC4", "iP-OPC5")
 cl_col = c(brewer.pal(4, "Purples")[3:4],
            brewer.pal(6, "RdPu")[2:6])
 Idents(ipsc) <- factor(x = ipsc$seurat_clusters, levels = cl_order, labels = cl_labels)
-UMAPPlot(ipsc, label = T, label.size = 10, pt.size = 3.0, repel = T) + NoLegend() + scale_color_manual(values = cl_col)
+UMAPPlot(ipsc, label = T, label.size = 10, pt.size = 3.0, repel = T) + NoLegend() # + scale_color_manual(values = cl_col)
+ggsave("plot_extra/ipsc/umap_cluster_new_label.pdf")
 ipsc$source = "iPSC-OPCs"
 
 g1s_genes = readLines("g1s_genes.txt")
@@ -28,8 +29,8 @@ FeaturePlot(ipsc, features = "S.Score") + FeaturePlot(ipsc, features = "G2M.Scor
 ggsave("plot_extra/ipsc/psc_cell_cylce.pdf")
 
 ipsc_markers = FindAllMarkers(ipsc)
-readr::write_csv(ipsc_markers, "plot_extra/ipsc_markers.csv")
-make_rnk(ipsc_markers, path = "plot_extra/ipsc_gsea/")
+# readr::write_csv(ipsc_markers, "plot_extra/ipsc_markers.csv")
+# make_rnk(ipsc_markers, path = "plot_extra/ipsc_gsea/")
 
 g_list3 = c('RBPJ', 'TSC22D1', 'NFIA', 'NR2F1', 'ZFP36L1')
 
@@ -68,7 +69,9 @@ cl_col = readr::read_csv("cl_color.csv")
 g3 = UMAPPlot(integrated1[, integrated1$source == "tdTom"], pt.size = 1.0) +
         theme(legend.text = element_text(size = 20), legend.position = "top") + scale_color_manual(values = cl_col$Color)
 g1 + g2 + g3
-ggplotly(g3)
+# Figure S8c
+ggsave("plot_extra/ipsc/ipsc_tdTom_combined_new_label.pdf")
+# ggplotly(g3)
 
 genes_use = intersect(rownames(ipsc), rownames(integrated))
 anchors0 = FindTransferAnchors(
@@ -142,6 +145,8 @@ DefaultAssay(ipsc) = "rna1"
 library(dplyr)
 top_genes <- ipsc_markers %>% group_by(cluster) %>% top_n(n = 40, wt = -p_val_adj)
 top_genes = top_genes[top_genes$p_val_adj < 0.05, ]
+# figure s8e
 DoHeatmap(ipsc, features = top_genes$gene) + NoLegend()+ theme(plot.margin = margin(2, 1, 1, 1, "cm"))
+ggsave("plot_extra/ipsc/marker_heatmap_newlabel.pdf")
 DoHeatmap(OPCs_tdTom1, features = top_genes$gene, group.colors = col_vec) + NoLegend()+ theme(plot.margin = margin(2, 1, 1, 1, "cm"))
 

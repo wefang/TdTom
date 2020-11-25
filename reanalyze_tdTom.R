@@ -3,6 +3,8 @@ library(readr)
 library(readxl)
 library(dplyr)
 library(Seurat)
+
+# this function makes rank file for preranked GSEA
 make_rnk <- function(y, path) {
         # using signed log pval here
         if (!dir.exists(path)) {
@@ -91,7 +93,6 @@ cl_label = read_excel("cluster_labels.xlsx")
 names(cl_label)[13] = "10.2"
 OPCs_tdTom1$cl = factor(as.character(cl_label[2, ])[match(OPCs_tdTom1$res.1.2, names(cl_label))], levels = as.character(cl_label[2, ]))
 cl_col = read_csv("cl_color.csv")
-cl_col
 col_vec  = cl_col$Color[match(as.character(cl_label[2, ]), cl_col$Ident)]
 
 OPCs_tdTom1_OPC = OPCs_tdTom1[, OPCs_tdTom1$res.1.2 %in% cluster_id[cluster_id$type %in% c("OPC"), "old_cluster"]]
